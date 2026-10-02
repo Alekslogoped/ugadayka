@@ -6,7 +6,9 @@
 <title>Угадай по признакам</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -30,7 +32,9 @@ button:focus-visible {
   outline-offset: 5px;
 }
 
-.computer { width: min(100%, 1100px); }
+.computer {
+  width: min(100%, 1100px);
+}
 
 .monitor {
   padding: 18px 18px 12px;
@@ -79,7 +83,7 @@ h1 {
   gap: 38px;
 }
 
-/* Плашки */
+/* Плашки с прилагательными */
 
 .clues {
   display: grid;
@@ -107,27 +111,39 @@ h1 {
   border-color: #f7dfb4;
 }
 
+/* Лёгкая тряска плашек при наведении */
+
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .clue:hover {
-    animation: clueShake .55s ease-in-out;
+    animation: clueShake 0.55s ease-in-out;
   }
 }
 
 @keyframes clueShake {
-  0%, 100% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(-2px) rotate(-1deg); }
-  40% { transform: translateX(2px) rotate(1deg); }
-  60% { transform: translateX(-2px) rotate(-.7deg); }
-  80% { transform: translateX(1px) rotate(.5deg); }
+  0%, 100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  40% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  60% {
+    transform: translateX(-2px) rotate(-0.7deg);
+  }
+  80% {
+    transform: translateX(1px) rotate(0.5deg);
+  }
 }
 
-/* Область коробки */
+/* Увеличенная область коробки */
 
 .answer {
   position: relative;
   width: 100%;
-  min-height: 390px;
-  padding: 16px;
+  min-height: 440px;
+  padding: 24px 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -146,7 +162,9 @@ h1 {
 }
 
 .answer.shaking,
-.answer.loading { cursor: wait; }
+.answer.loading {
+  cursor: wait;
+}
 
 .answer-label {
   min-height: 42px;
@@ -161,12 +179,12 @@ h1 {
   line-height: 1.3;
 }
 
-/* Размер всей сцены */
+/* Больше свободного места над коробкой */
 
 .box-stage {
   position: relative;
   width: 280px;
-  height: 280px;
+  height: 325px;
   flex-shrink: 0;
 }
 
@@ -175,7 +193,7 @@ h1 {
   inset: 0;
 }
 
-/* Передняя стенка */
+/* Передняя стенка коробки */
 
 .box-body {
   position: absolute;
@@ -200,7 +218,7 @@ h1 {
   color: #fff3de;
 }
 
-/* Крышка */
+/* Крышка коробки */
 
 .box-lid {
   position: absolute;
@@ -213,10 +231,10 @@ h1 {
   border: 4px solid #bd7b3f;
   border-radius: 7px;
   transform-origin: 10% 80%;
-  transition: transform .5s ease, opacity .5s ease;
+  transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-/* Размер и положение картинки героя */
+/* Размер и положение животных */
 
 .box-hero {
   position: absolute;
@@ -229,9 +247,9 @@ h1 {
   align-items: flex-end;
   justify-content: center;
   opacity: 0;
-  transform: translateY(65px) scale(.45);
+  transform: translateY(65px) scale(0.45);
   transform-origin: bottom center;
-  transition: transform .75s ease-out, opacity .3s ease;
+  transition: transform 0.75s ease-out, opacity 0.3s ease;
 }
 
 .box-hero img {
@@ -257,12 +275,16 @@ h1 {
   font-size: 55px;
 }
 
+/* Тряска коробки */
+
 .shaking .box-scene {
-  animation: boxShake .65s ease-in-out;
+  animation: boxShake 0.65s ease-in-out;
 }
 
 @keyframes boxShake {
-  0%, 100% { transform: rotate(0); }
+  0%, 100% {
+    transform: rotate(0);
+  }
   15%, 45%, 75% {
     transform: translateX(-7px) rotate(-5deg);
   }
@@ -271,7 +293,7 @@ h1 {
   }
 }
 
-/* Навигация */
+/* Кнопки */
 
 footer {
   display: flex;
@@ -292,7 +314,7 @@ footer {
 }
 
 .nav:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: default;
 }
 
@@ -301,7 +323,7 @@ footer {
   background: #e9edf4;
 }
 
-/* Подставка */
+/* Подставка компьютера */
 
 .led {
   width: 8px;
@@ -339,26 +361,42 @@ footer {
   line-height: 1.2;
 }
 
-.end h2 { font-size: 38px; }
-.end p { font-size: 22px; }
+.end h2 {
+  font-size: 38px;
+}
+
+.end p {
+  font-size: 22px;
+}
+
+/* Небольшие экраны */
 
 @media (max-width: 700px) {
-  body { padding: 10px; }
+  body {
+    padding: 10px;
+  }
 
   .monitor {
     padding: 10px;
     border-radius: 20px;
   }
 
-  .screen { padding: 18px; }
-  header { align-items: flex-start; }
+  .screen {
+    padding: 18px;
+  }
+
+  header {
+    align-items: flex-start;
+  }
 
   .counter {
     padding: 8px;
     font-size: 13px;
   }
 
-  .board { gap: 15px; }
+  .board {
+    gap: 15px;
+  }
 
   .clue {
     padding: 17px 5px;
@@ -366,23 +404,23 @@ footer {
   }
 
   .answer {
-    min-height: 320px;
-    padding: 8px;
+    min-height: 355px;
+    padding: 16px 8px 8px;
   }
 
   .box-stage {
     width: 196px;
-    height: 220px;
+    height: 250px;
   }
 
   .box-scene {
     width: 280px;
-    height: 280px;
+    height: 325px;
     inset: auto;
     left: 50%;
     bottom: 0;
     margin-left: -140px;
-    transform: scale(.7);
+    transform: scale(0.7);
     transform-origin: bottom center;
   }
 
@@ -395,29 +433,40 @@ footer {
     font-size: 23px;
   }
 
-  .hint { font-size: 13px; }
+  .hint {
+    font-size: 13px;
+  }
 
   .nav {
     padding: 12px 16px;
     font-size: 16px;
   }
 
-  .stand { height: 25px; }
+  .stand {
+    height: 25px;
+  }
 }
 
 @keyframes boxShakeSmall {
-  0%, 100% { transform: scale(.7) rotate(0); }
+  0%, 100% {
+    transform: scale(0.7) rotate(0);
+  }
   15%, 45%, 75% {
-    transform: scale(.7) translateX(-7px) rotate(-5deg);
+    transform: scale(0.7) translateX(-7px) rotate(-5deg);
   }
   30%, 60%, 90% {
-    transform: scale(.7) translateX(7px) rotate(5deg);
+    transform: scale(0.7) translateX(7px) rotate(5deg);
   }
 }
 
 @media (max-width: 430px) {
-  .board { grid-template-columns: 1fr; }
-  .clues { gap: 10px; }
+  .board {
+    grid-template-columns: 1fr;
+  }
+
+  .clues {
+    gap: 10px;
+  }
 
   .clue {
     padding: 12px;
@@ -426,8 +475,14 @@ footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shaking .box-scene { animation: none; }
-  .box-lid, .box-hero { transition: none; }
+  .shaking .box-scene {
+    animation: none;
+  }
+
+  .box-lid,
+  .box-hero {
+    transition: none;
+  }
 }
 </style>
 </head>
@@ -452,6 +507,7 @@ footer {
         <button class="nav" id="next" disabled>Дальше →</button>
       </footer>
     </section>
+
     <div class="led"></div>
   </div>
 
@@ -460,8 +516,18 @@ footer {
 </main>
 
 <script>
-// Картинки находятся в папке images.
-// Имена файлов: pik-1.png ... pik-8.png.
+// =====================================================
+// КАРТИНКИ В ПАПКЕ images
+//
+// pik-1.png — заяц
+// pik-2.png — лиса
+// pik-3.png — волк
+// pik-4.png — медведь
+// pik-5.png — ёж
+// pik-6.png — белка
+// pik-7.png — тигр
+// pik-8.png — лев
+// =====================================================
 
 const rounds = [
   {
@@ -507,19 +573,23 @@ const rounds = [
 ];
 
 const $ = id => document.getElementById(id);
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const wait = ms =>
+  new Promise(resolve => setTimeout(resolve, ms));
 
 let index = 0;
 let opened = false;
 let finished = false;
 let busy = false;
 
-// Предварительно загружаем картинки.
+// Предварительная загрузка картинок
 
 const imageCache = new Map();
 
 function loadImage(src) {
-  if (imageCache.has(src)) return imageCache.get(src);
+  if (imageCache.has(src)) {
+    return imageCache.get(src);
+  }
 
   const promise = new Promise(resolve => {
     const img = new Image();
@@ -545,12 +615,15 @@ function loadImage(src) {
 
 rounds.forEach(round => loadImage(round.image));
 
+// Показ раунда
+
 function render() {
   opened = false;
   finished = false;
   busy = false;
 
-  $("counter").textContent = `${index + 1} / ${rounds.length}`;
+  $("counter").textContent =
+    `${index + 1} / ${rounds.length}`;
 
   $("board").innerHTML = `
     <div class="clues" id="clues"></div>
@@ -559,6 +632,7 @@ function render() {
       class="answer"
       id="answer"
       aria-label="Открыть коробку">
+
       <span class="box-stage" aria-hidden="true">
         <span class="box-scene">
           <span class="box-hero"></span>
@@ -580,11 +654,16 @@ function render() {
   });
 
   $("next").disabled = true;
+
   $("next").textContent =
-    index === rounds.length - 1 ? "Завершить →" : "Дальше →";
+    index === rounds.length - 1
+      ? "Завершить →"
+      : "Дальше →";
 
   $("back").disabled = index === 0;
 }
+
+// Открытие коробки
 
 async function openBox() {
   if (opened || busy || finished) return;
@@ -606,7 +685,11 @@ async function openBox() {
   if (!image) {
     hint.textContent =
       "Картинка не загрузилась. Нажми, чтобы повторить.";
-    button.setAttribute("aria-label", "Повторить загрузку картинки");
+
+    button.setAttribute(
+      "aria-label",
+      "Повторить загрузку картинки"
+    );
 
     imageCache.delete(round.image);
     busy = false;
@@ -617,7 +700,9 @@ async function openBox() {
   const heroImage = image.cloneNode();
   heroImage.alt = round.answer;
   heroImage.draggable = false;
-  button.querySelector(".box-hero").replaceChildren(heroImage);
+
+  button.querySelector(".box-hero")
+    .replaceChildren(heroImage);
 
   hint.textContent = "Кто же прячется внутри?";
   button.classList.add("shaking");
@@ -628,9 +713,15 @@ async function openBox() {
   button.classList.remove("shaking");
   button.classList.add("revealed");
 
-  button.querySelector(".answer-label").textContent = round.answer;
+  button.querySelector(".answer-label").textContent =
+    round.answer;
+
   hint.textContent = "Вот кто прятался в коробке!";
-  button.setAttribute("aria-label", `Ответ: ${round.answer}`);
+
+  button.setAttribute(
+    "aria-label",
+    `Ответ: ${round.answer}`
+  );
 
   await wait(750);
 
@@ -641,16 +732,22 @@ async function openBox() {
 }
 
 $("board").addEventListener("click", event => {
-  if (event.target.closest("#answer")) openBox();
+  if (event.target.closest("#answer")) {
+    openBox();
+  }
 });
+
+// Следующий раунд и завершение
 
 $("next").addEventListener("click", () => {
   if (busy) return;
 
   if (finished) {
     index = 0;
+
     $("instruction").textContent =
       "Прочитай три слова. Назови героя и нажми на коробку.";
+
     render();
     return;
   }
@@ -679,6 +776,8 @@ $("next").addEventListener("click", () => {
   $("back").disabled = true;
   $("next").textContent = "Играть ещё";
 });
+
+// Предыдущий раунд
 
 $("back").addEventListener("click", () => {
   if (index > 0 && !finished && !busy) {
