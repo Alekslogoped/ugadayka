@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Угадай по признакам</title>
 
 <style>
@@ -13,12 +13,12 @@
 body {
   margin: 0;
   min-height: 100svh;
-  background: #eaf4f8;
-  font-family: Arial, sans-serif;
-  color: #23364e;
+  padding: 20px;
   display: grid;
   place-items: center;
-  padding: 20px;
+  font-family: Arial, sans-serif;
+  color: #23364e;
+  background: #eaf4f8;
 }
 
 button {
@@ -37,17 +37,17 @@ button:focus-visible {
 }
 
 .monitor {
+  padding: 18px 18px 12px;
   background: #23364e;
   border-radius: 30px;
-  padding: 18px 18px 12px;
   box-shadow: 0 18px 45px #23364e22;
 }
 
 .screen {
+  min-height: 490px;
+  padding: 30px;
   background: #fafcff;
   border-radius: 18px;
-  padding: 30px;
-  min-height: 490px;
 }
 
 header {
@@ -58,30 +58,32 @@ header {
 }
 
 h1 {
-  font-size: clamp(23px, 3.6vw, 38px);
   margin: 0;
+  font-size: clamp(23px, 3.6vw, 38px);
 }
 
 .counter {
+  padding: 10px 18px;
   background: #eaf0ff;
   border-radius: 20px;
-  padding: 10px 18px;
   font-weight: bold;
   white-space: nowrap;
 }
 
 .instruction {
+  margin: 14px 0 28px;
   font-size: clamp(16px, 2vw, 21px);
   color: #65758b;
-  margin: 14px 0 28px;
 }
 
 .board {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 38px;
   align-items: center;
+  gap: 38px;
 }
+
+/* Плашки с прилагательными */
 
 .clues {
   display: grid;
@@ -89,13 +91,14 @@ h1 {
 }
 
 .clue {
-  background: #e8e8ff;
-  border: 2px solid #d4d2ff;
-  border-radius: 19px;
+  padding: 20px 10px;
   text-align: center;
   font-size: clamp(22px, 3.7vw, 38px);
   font-weight: bold;
-  padding: 20px 10px;
+  background: #e8e8ff;
+  border: 2px solid #d4d2ff;
+  border-radius: 19px;
+  transform-origin: center;
 }
 
 .clue:nth-child(2) {
@@ -108,21 +111,49 @@ h1 {
   border-color: #f7dfb4;
 }
 
+/* Лёгкая тряска при наведении мыши */
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .clue:hover {
+    animation: clueShake 0.55s ease-in-out;
+  }
+}
+
+@keyframes clueShake {
+  0%, 100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  40% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  60% {
+    transform: translateX(-2px) rotate(-0.7deg);
+  }
+  80% {
+    transform: translateX(1px) rotate(0.5deg);
+  }
+}
+
+/* Область с коробкой */
+
 .answer {
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 300px;
-  border: 0;
-  border-radius: 24px;
-  background: #edf3ff;
-  color: #23364e;
+  min-height: 360px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 20px;
+  color: #23364e;
+  background: #edf3ff;
+  border: 0;
+  border-radius: 24px;
 }
 
 .answer.revealed {
@@ -145,13 +176,21 @@ h1 {
   color: #687b97;
 }
 
-/* Коробка */
+/* Сцена сохраняет размер при открытии */
+
+.box-stage {
+  width: 220px;
+  height: 250px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 
 .box-scene {
   position: relative;
   width: 220px;
   height: 195px;
-  margin-top: 15px;
+  flex-shrink: 0;
 }
 
 .box-body {
@@ -188,13 +227,14 @@ h1 {
   border: 4px solid #bd7b3f;
   border-radius: 7px;
   transform-origin: 10% 80%;
-  transition: transform .5s, opacity .5s;
+  transition: transform 0.5s, opacity 0.5s;
 }
 
-/* Герой внутри коробки */
+/* Герой */
 
 .box-hero {
   position: absolute;
+  z-index: 2;
   left: 0;
   bottom: 35px;
   width: 100%;
@@ -203,10 +243,9 @@ h1 {
   align-items: center;
   justify-content: center;
   font-size: 100px;
-  z-index: 2;
   opacity: 0;
-  transform: scale(.5);
-  transition: transform .65s ease-out, opacity .3s;
+  transform: scale(0.5);
+  transition: transform 0.65s ease-out, opacity 0.3s;
 }
 
 .box-hero img {
@@ -230,17 +269,13 @@ h1 {
   font-size: 55px;
 }
 
-.answer.revealed .box-scene {
-  margin-top: 85px;
-}
-
 /* Тряска коробки */
 
 .shaking .box-scene {
-  animation: shake .65s ease-in-out;
+  animation: boxShake 0.65s ease-in-out;
 }
 
-@keyframes shake {
+@keyframes boxShake {
   0%, 100% {
     transform: rotate(0);
   }
@@ -256,68 +291,68 @@ h1 {
 
 footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 15px;
   margin-top: 28px;
 }
 
 .nav {
+  padding: 14px 25px;
+  font-size: 19px;
+  font-weight: bold;
+  color: white;
+  background: #5b64dc;
   border: 0;
   border-radius: 14px;
-  background: #5b64dc;
-  color: white;
-  padding: 14px 25px;
-  font-weight: bold;
-  font-size: 19px;
 }
 
 .nav:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: default;
 }
 
 .back {
-  background: #e9edf4;
   color: #354761;
+  background: #e9edf4;
 }
 
 /* Подставка компьютера */
 
 .led {
-  height: 8px;
   width: 8px;
+  height: 8px;
+  margin: 10px auto 0;
   background: #a4e4bd;
   border-radius: 50%;
-  margin: 10px auto 0;
 }
 
 .stand {
-  height: 35px;
   width: 110px;
-  background: #23364e;
+  height: 35px;
   margin: auto;
+  background: #23364e;
 }
 
 .base {
-  height: 15px;
   width: 240px;
+  height: 15px;
+  margin: auto;
   background: #23364e;
   border-radius: 15px 15px 4px 4px;
-  margin: auto;
 }
 
 /* Финал */
 
+.end {
+  grid-column: 1 / -1;
+  padding: 28px;
+  text-align: center;
+}
+
 .symbol {
   font-size: 100px;
   line-height: 1.2;
-}
-
-.end {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 28px;
 }
 
 .end h2 {
@@ -328,7 +363,7 @@ footer {
   font-size: 22px;
 }
 
-/* Планшеты и небольшие экраны */
+/* Небольшие экраны */
 
 @media (max-width: 600px) {
   body {
@@ -341,8 +376,8 @@ footer {
   }
 
   .screen {
-    padding: 18px;
     min-height: 0;
+    padding: 18px;
   }
 
   header {
@@ -350,8 +385,8 @@ footer {
   }
 
   .counter {
-    font-size: 13px;
     padding: 8px;
+    font-size: 13px;
   }
 
   .instruction {
@@ -359,32 +394,39 @@ footer {
   }
 
   .board {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 15px;
   }
 
   .clue {
     padding: 17px 5px;
-    font-size: 21px;
+    font-size: clamp(15px, 3.5vw, 21px);
+    overflow-wrap: anywhere;
   }
 
   .answer {
-    min-height: 290px;
+    min-height: 310px;
     padding: 8px;
   }
 
-  .box-scene {
-    transform: scale(.8);
-    width: 220px;
-    margin-left: -20px;
-    margin-right: -20px;
+  .box-stage {
+    width: 176px;
+    height: 210px;
+    max-width: 100%;
   }
 
-  .answer.revealed .box-scene {
-    margin-top: 65px;
+  .box-scene {
+    transform: scale(0.8);
+    transform-origin: bottom center;
+  }
+
+  .shaking .box-scene {
+    animation-name: boxShakeSmall;
   }
 
   .answer-label {
-    font-size: 22px;
+    min-height: 30px;
+    font-size: 21px;
   }
 
   .hint {
@@ -396,12 +438,35 @@ footer {
   }
 
   .nav {
-    font-size: 16px;
     padding: 12px 16px;
+    font-size: 16px;
   }
 
   .stand {
     height: 25px;
+  }
+}
+
+@keyframes boxShakeSmall {
+  0%, 100% {
+    transform: scale(0.8) rotate(0);
+  }
+  15%, 45%, 75% {
+    transform: scale(0.8) translateX(-7px) rotate(-5deg);
+  }
+  30%, 60%, 90% {
+    transform: scale(0.8) translateX(7px) rotate(5deg);
+  }
+}
+
+@media (max-width: 360px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+
+  .clue {
+    font-size: 22px;
+    padding: 12px;
   }
 }
 
@@ -428,7 +493,7 @@ footer {
       </header>
 
       <p class="instruction" id="instruction">
-        Прочитай три слова. Назови животное и открой ответ.
+        Прочитай три слова. Назови героя и нажми на коробку.
       </p>
 
       <div class="board" id="board">
@@ -437,7 +502,7 @@ footer {
         <button
           class="answer"
           id="answer"
-          aria-label="Открыть ответ">
+          aria-label="Открыть коробку">
         </button>
       </div>
 
@@ -456,15 +521,14 @@ footer {
 
 <script>
 // =====================================================
-// РАУНДЫ ИГРЫ — МЕНЯЙТЕ СЛОВА И ГЕРОЕВ ЗДЕСЬ
+// МЕНЯЙТЕ СЛОВА И ГЕРОЕВ ЗДЕСЬ
 //
 // clues  — три прилагательных
 // answer — название героя
 // emoji  — временная картинка
 // image  — путь к вашей иллюстрации
 //
-// Пример:
-// image: "images/zayats.png"
+// Пример: image: "images/zayats.png"
 //
 // Если image пустое, отображается эмодзи.
 // =====================================================
@@ -528,13 +592,24 @@ let busy = false;
 const $ = id => document.getElementById(id);
 
 const boxMarkup = `
-  <div class="box-scene">
-    <span class="box-hero"></span>
-    <span class="box-lid"></span>
-    <span class="box-body"></span>
-  </div>
+  <span class="box-stage" aria-hidden="true">
+    <span class="box-scene">
+      <span class="box-hero"></span>
+      <span class="box-lid"></span>
+      <span class="box-body"></span>
+    </span>
+  </span>
   <span class="answer-label">Кто в коробке?</span>
   <span class="hint">Нажми на коробку</span>
+`;
+
+const boardMarkup = `
+  <div class="clues" id="clues"></div>
+  <button
+    class="answer"
+    id="answer"
+    aria-label="Открыть коробку">
+  </button>
 `;
 
 // Показ текущего раунда
@@ -556,8 +631,7 @@ function render() {
   $("clues").replaceChildren(...clueElements);
 
   $("answer").className = "answer";
-  $("answer").disabled = false;
-  $("answer").setAttribute("aria-label", "Открыть ответ");
+  $("answer").setAttribute("aria-label", "Открыть коробку");
   $("answer").innerHTML = boxMarkup;
 
   $("next").disabled = true;
@@ -567,74 +641,85 @@ function render() {
   $("back").disabled = index === 0;
 }
 
-// Нажатие на коробку
+// Открытие коробки
 
-$("answer").addEventListener("click", () => {
-  if (opened || busy) return;
+function openBox() {
+  if (opened || busy || finished) return;
 
   busy = true;
-
   const round = rounds[index];
 
   $("back").disabled = true;
   $("answer").classList.add("shaking");
   $("answer").setAttribute("aria-label", "Коробка открывается");
 
-  // Сначала коробка трясётся
-
   setTimeout(() => {
     const hero = $("answer").querySelector(".box-hero");
 
     if (round.image) {
       const img = document.createElement("img");
-
-      img.src = round.image;
       img.alt = round.answer;
 
       img.onerror = () => {
-        hero.textContent = round.emoji;
+        hero.textContent = round.emoji || "⭐";
       };
 
+      img.src = round.image;
       hero.append(img);
     } else {
-      hero.textContent = round.emoji;
+      hero.textContent = round.emoji || "⭐";
     }
 
-    // Затем открывается крышка и появляется герой
-
     $("answer").classList.remove("shaking");
-    $("answer").classList.add("revealed");
 
-    $("answer").querySelector(".answer-label").textContent =
-      round.answer;
+    // Даём браузеру отобразить героя в начальном положении.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        $("answer").classList.add("revealed");
 
-    $("answer").querySelector(".hint").textContent =
-      "Вот кто прятался в коробке!";
+        $("answer").querySelector(".answer-label").textContent =
+          round.answer;
 
-    $("answer").setAttribute(
-      "aria-label",
-      `Ответ: ${round.answer}`
-    );
+        $("answer").querySelector(".hint").textContent =
+          "Вот кто прятался в коробке!";
 
-    setTimeout(() => {
-      opened = true;
-      busy = false;
+        $("answer").setAttribute(
+          "aria-label",
+          `Ответ: ${round.answer}`
+        );
 
-      $("next").disabled = false;
-      $("back").disabled = index === 0;
-    }, 650);
+        setTimeout(() => {
+          opened = true;
+          busy = false;
+          $("next").disabled = false;
+          $("back").disabled = index === 0;
+        }, 650);
+      });
+    });
   }, 650);
+}
+
+// Делегирование сохраняет обработчик после перезапуска игры.
+
+$("board").addEventListener("click", event => {
+  if (event.target.closest("#answer")) {
+    openBox();
+  }
 });
 
 // Следующий раунд и финал
 
 $("next").addEventListener("click", () => {
   if (finished) {
-    location.reload();
+    index = 0;
+    $("board").innerHTML = boardMarkup;
+    $("instruction").textContent =
+      "Прочитай три слова. Назови героя и нажми на коробку.";
+    render();
     return;
   }
 
-  if (!opened) return;
+  if (!opened || busy) return;
 
   if (index < rounds.length - 1) {
     index++;
