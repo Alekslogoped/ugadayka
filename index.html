@@ -1,797 +1,814 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Угадай по признакам</title>
-
-<style>
-* { box-sizing: border-box; }
-
-html, body {
-  margin: 0;
-  min-height: 100%;
-}
-
-body {
-  min-height: 100svh;
-  padding: 12px;
-  display: grid;
-  place-items: center;
-  background: #eaf4f8;
-  font-family: Arial, sans-serif;
-  color: #23364e;
-}
-
-button {
-  font: inherit;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-button:focus-visible {
-  outline: 4px solid #ffbc45;
-  outline-offset: 4px;
-}
-
-/*
-  Вся игра масштабируется вместе с монитором.
-  Размеры внутреннего макета: 1680 × 945.
-*/
-
-.game-shell {
-  position: relative;
-  width: 100%;
-  max-width: 1400px;
-}
-
-.game {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1680px;
-  height: 945px;
-  transform-origin: top left;
-}
-
-.monitor-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* Положение игрового поля внутри изображения монитора */
-
-.screen {
-  position: absolute;
-  left: 11%;
-  top: 11.5%;
-  width: 78%;
-  height: 63%;
-  padding: 18px 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 42px;
-}
-
-.counter {
-  padding: 9px 20px;
-  border-radius: 20px;
-  background: #eaf0ff;
-  font-size: 24px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.instruction {
-  margin: 9px 0;
-  font-size: 23px;
-  color: #65758b;
-  line-height: 1.3;
-}
-
-/* Лапки прогресса */
-
-.progress {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: 0 0 8px;
-}
-
-.paw {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  color: #cbd5e1;
-  transition: color .3s, transform .3s;
-}
-
-.paw svg {
-  width: 30px;
-  height: 30px;
-  fill: currentColor;
-}
-
-.paw.current {
-  color: #9298eb;
-  background: #ededff;
-  border-radius: 50%;
-}
-
-.paw.done {
-  color: #eea34c;
-  transform: rotate(-8deg);
-}
-
-.paw.done:nth-child(even) {
-  color: #77bea0;
-  transform: rotate(8deg);
-}
-
-/* Основное поле */
-
-.board {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 45px;
-}
-
-.clues {
-  display: grid;
-  gap: 18px;
-}
-
-.clue {
-  padding: 20px 12px;
-  text-align: center;
-  font-size: 40px;
-  font-weight: bold;
-  background: #e8e8ff;
-  border: 2px solid #d4d2ff;
-  border-radius: 19px;
-}
-
-.clue:nth-child(2) {
-  background: #e4f5ee;
-  border-color: #c5e9d9;
-}
-
-.clue:nth-child(3) {
-  background: #fff0d6;
-  border-color: #f7dfb4;
-}
-
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .clue:hover {
-    animation: clueShake .55s ease-in-out;
-  }
-}
-
-@keyframes clueShake {
-  0%, 100% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(-2px) rotate(-1deg); }
-  40% { transform: translateX(2px) rotate(1deg); }
-  60% { transform: translateX(-2px) rotate(-.7deg); }
-  80% { transform: translateX(1px) rotate(.5deg); }
-}
-
-/* Коробка */
-
-.answer {
-  position: relative;
-  width: 100%;
-  height: 355px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: #23364e;
-  background: #edf3ff;
-  border: 0;
-  border-radius: 24px;
-  overflow: hidden;
-  transition: background .3s;
-}
-
-.answer.revealed {
-  background: #f3faf6;
-  cursor: default;
-}
-
-.answer.shaking,
-.answer.loading { cursor: wait; }
-
-.answer-label {
-  min-height: 36px;
-  font-size: 30px;
-  font-weight: bold;
-}
-
-.hint {
-  min-height: 25px;
-  font-size: 18px;
-  color: #687b97;
-  line-height: 1.2;
-}
-
-.box-stage {
-  position: relative;
-  width: 280px;
-  height: 270px;
-  flex-shrink: 0;
-}
-
-.box-scene {
-  position: absolute;
-  inset: 0;
-}
-
-.box-body {
-  position: absolute;
-  z-index: 3;
-  left: 40px;
-  bottom: 0;
-  width: 200px;
-  height: 95px;
-  background: #e9af68;
-  border: 4px solid #bd7b3f;
-  border-radius: 5px 5px 15px 15px;
-  box-shadow: inset -18px 0 #d99a55;
-}
-
-.box-body::after {
-  content: "?";
-  position: absolute;
-  inset: 8px;
-  text-align: center;
-  font-size: 58px;
-  font-weight: bold;
-  color: #fff3de;
-}
-
-.box-lid {
-  position: absolute;
-  z-index: 4;
-  left: 30px;
-  bottom: 87px;
-  width: 220px;
-  height: 30px;
-  background: #f7c785;
-  border: 4px solid #bd7b3f;
-  border-radius: 7px;
-  transform-origin: 10% 80%;
-  transition: transform .5s ease, opacity .5s ease;
-}
-
-/* Картинка целиком помещается в сцену */
-
-.box-hero {
-  position: absolute;
-  z-index: 2;
-  left: 20px;
-  bottom: 15px;
-  width: 240px;
-  height: 205px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  opacity: 0;
-  transform: translateY(55px) scale(.45);
-  transform-origin: bottom center;
-  transition: transform .75s ease-out, opacity .3s ease;
-}
-
-.box-hero img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.answer.revealed .box-hero {
-  opacity: 1;
-  transform: translateY(-40px) scale(1);
-}
-
-.answer.revealed .box-lid {
-  transform: translate(-25px, -65px) rotate(-35deg);
-  opacity: 0;
-}
-
-.answer.revealed .box-body::after {
-  content: "★";
-  font-size: 50px;
-}
-
-.shaking .box-scene {
-  animation: boxShake .65s ease-in-out;
-}
-
-@keyframes boxShake {
-  0%, 100% { transform: rotate(0); }
-  15%, 45%, 75% {
-    transform: translateX(-7px) rotate(-5deg);
-  }
-  30%, 60%, 90% {
-    transform: translateX(7px) rotate(5deg);
-  }
-}
-
-/* Искорки */
-
-.sparkles {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-}
-
-.spark {
-  position: absolute;
-  color: var(--color);
-  font-size: var(--size);
-  opacity: 0;
-  animation: sparkle 1.1s ease-out forwards;
-  animation-delay: var(--delay);
-}
-
-@keyframes sparkle {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(.2);
-  }
-  25%, 65% { opacity: 1; }
-  100% {
-    opacity: 0;
-    transform:
-      translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
-      scale(1.1)
-      rotate(70deg);
-  }
-}
-
-/* Кнопки внутри экрана */
-
-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 8px;
-}
-
-.nav {
-  padding: 10px 25px;
-  font-size: 23px;
-  font-weight: bold;
-  color: white;
-  background: #5b64dc;
-  border: 0;
-  border-radius: 14px;
-}
-
-.nav:disabled {
-  opacity: .4;
-  cursor: default;
-}
-
-.back {
-  color: #354761;
-  background: #e9edf4;
-}
-
-/* Финал */
-
-.end {
-  grid-column: 1 / -1;
-  text-align: center;
-}
-
-.symbol {
-  font-size: 85px;
-  line-height: 1.2;
-}
-
-.end h2 {
-  margin: 15px 0;
-  font-size: 48px;
-}
-
-.end p {
-  margin: 10px 0;
-  font-size: 28px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shaking .box-scene { animation: none; }
-  .sparkles { display: none; }
-
-  .box-lid,
-  .box-hero,
-  .paw,
-  .answer { transition: none; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Угадай по признакам</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      background: #eaf4f8;
+      font-family: Arial, sans-serif;
+      color: #343750;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible {
+      outline: 4px solid #7970df;
+      outline-offset: 4px;
+    }
+
+    .game-shell {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    .game {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1680px;
+      height: 945px;
+      transform-origin: top left;
+    }
+
+    .monitor-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Вся игра находится внутри светлой области монитора */
+    .screen {
+      position: absolute;
+      left: 12%;
+      top: 13%;
+      width: 76%;
+      height: 61%;
+      padding: 12px 24px;
+    }
+
+    header {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .instruction {
+      margin: 6px 0 0;
+      font-size: 22px;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    /* Основная область: слова слева, коробка справа */
+    .board {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      top: 94px;
+      bottom: 82px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 35px;
+    }
+
+    .clues {
+      display: grid;
+      gap: 18px;
+    }
+
+    .clue {
+      padding: 20px 12px;
+      border: 2px solid #d2c9f4;
+      border-radius: 19px;
+      background: #eee7ff;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center;
+      box-shadow: 0 5px 0 rgba(70, 61, 110, 0.06);
+    }
+
+    .clue:nth-child(2) {
+      background: #e4f5ed;
+      border-color: #c3e5d5;
+    }
+
+    .clue:nth-child(3) {
+      background: #fff2cd;
+      border-color: #ecdba6;
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+      .clue:hover {
+        animation: clueShake 0.55s ease-in-out;
+      }
+    }
+
+    @keyframes clueShake {
+      0%, 100% { transform: rotate(0deg); }
+      20% { transform: rotate(-1.5deg) translateX(-2px); }
+      40% { transform: rotate(1.5deg) translateX(2px); }
+      60% { transform: rotate(-1deg) translateX(-1px); }
+      80% { transform: rotate(1deg) translateX(1px); }
+    }
+
+    /* Увеличенная рамка ответа */
+    .answer {
+      position: relative;
+      width: 100%;
+      height: 390px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 10px;
+      overflow: hidden;
+      border: 3px solid #dce4f5;
+      border-radius: 26px;
+      background: #edf3ff;
+      color: inherit;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .answer.revealed {
+      background: #f3faf6;
+      border-color: #cce8d7;
+    }
+
+    .answer-label {
+      min-height: 36px;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .hint {
+      min-height: 25px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    /* Увеличенная коробка */
+    .box-stage {
+      position: relative;
+      width: 320px;
+      height: 305px;
+      flex-shrink: 0;
+    }
+
+    .box-scene {
+      position: absolute;
+      inset: 0;
+    }
+
+    .box-body {
+      position: absolute;
+      z-index: 3;
+      left: 45px;
+      bottom: 0;
+      width: 230px;
+      height: 105px;
+      border: 4px solid #b57941;
+      border-radius: 6px 6px 15px 15px;
+      background: linear-gradient(135deg, #edbd7d, #dca063);
+      box-shadow: 0 8px 0 rgba(125, 81, 43, 0.1);
+    }
+
+    .box-body::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 34px;
+      transform: translateX(-50%);
+      background: rgba(255, 224, 161, 0.65);
+    }
+
+    .box-body::after {
+      content: "?";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #85532f;
+      font-size: 64px;
+      font-weight: 700;
+    }
+
+    .box-lid {
+      position: absolute;
+      z-index: 4;
+      left: 35px;
+      bottom: 97px;
+      width: 250px;
+      height: 34px;
+      border: 4px solid #b57941;
+      border-radius: 8px;
+      background: #f1c58d;
+      transform-origin: 10% 80%;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+
+    .box-lid::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 34px;
+      transform: translateX(-50%);
+      background: #ffe0a1;
+    }
+
+    /* Картинка героя полностью помещается в этой области */
+    .box-hero {
+      position: absolute;
+      z-index: 2;
+      left: 20px;
+      bottom: 15px;
+      width: 280px;
+      height: 240px;
+      opacity: 0;
+      transform: translateY(55px) scale(0.45);
+      transform-origin: bottom center;
+      transition:
+        transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1),
+        opacity 0.3s ease;
+    }
+
+    .box-hero img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+    }
+
+    .answer.revealed .box-hero {
+      opacity: 1;
+      transform: translateY(-40px) scale(1);
+    }
+
+    .answer.revealed .box-lid {
+      opacity: 0;
+      transform: translate(-25px, -65px) rotate(-35deg);
+    }
+
+    .answer.revealed .box-body::after {
+      content: "★";
+      font-size: 50px;
+      color: #fff1bc;
+      text-shadow: 0 2px 0 #bd814c;
+    }
+
+    .box-scene.shaking {
+      animation: boxShake 0.65s ease-in-out;
+    }
+
+    @keyframes boxShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      15% { transform: translateX(-7px) rotate(-5deg); }
+      30% { transform: translateX(7px) rotate(5deg); }
+      45% { transform: translateX(-7px) rotate(-5deg); }
+      60% { transform: translateX(7px) rotate(5deg); }
+      75% { transform: translateX(-4px) rotate(-3deg); }
+      90% { transform: translateX(4px) rotate(3deg); }
+    }
+
+    .sparkles {
+      position: absolute;
+      z-index: 6;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .spark {
+      position: absolute;
+      color: var(--color);
+      font-size: var(--size);
+      opacity: 0;
+      animation: sparkle 1.1s ease-out var(--delay) forwards;
+    }
+
+    @keyframes sparkle {
+      0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.3);
+      }
+      25% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform:
+          translate(var(--dx), var(--dy))
+          rotate(70deg)
+          scale(1.1);
+      }
+    }
+
+    /* Счётчик и лапки теперь внизу */
+    .status {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .counter {
+      padding: 4px 14px;
+      border-radius: 16px;
+      background: #eaf0ff;
+      font-size: 19px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .progress {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .paw {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #cbd5e1;
+    }
+
+    .paw svg {
+      width: 30px;
+      height: 30px;
+      fill: currentColor;
+    }
+
+    .paw.current {
+      color: #9298eb;
+      background: #ededff;
+      border-radius: 50%;
+    }
+
+    .paw.done {
+      color: #eea34c;
+      transform: rotate(-8deg);
+    }
+
+    .paw.done:nth-child(even) {
+      color: #77bea0;
+      transform: rotate(8deg);
+    }
+
+    footer {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .nav {
+      padding: 10px 25px;
+      border: 0;
+      border-radius: 14px;
+      background: #8d82d8;
+      color: #fff;
+      font-size: 23px;
+      font-weight: 700;
+      pointer-events: auto;
+    }
+
+    .nav.back {
+      background: #e7e9f2;
+      color: #535970;
+    }
+
+    .nav:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .end {
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    .end-symbol {
+      font-size: 85px;
+    }
+
+    .end h2 {
+      margin: 10px 0;
+      font-size: 48px;
+    }
+
+    .end p {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .box-scene.shaking,
+      .spark {
+        animation: none;
+      }
+
+      .box-hero,
+      .box-lid,
+      .answer {
+        transition: none;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<main class="game-shell" id="gameShell">
-  <div class="game" id="game">
-    <img
-      class="monitor-image"
-      src="images/monitor.png"
-      alt=""
-      aria-hidden="true"
-      draggable="false">
+  <main class="game-shell" id="gameShell">
+    <div class="game" id="game">
+      <img
+        class="monitor-image"
+        src="images/monitor.png"
+        alt=""
+        aria-hidden="true"
+        draggable="false"
+      >
 
-    <section class="screen">
-      <header>
-        <h1>Угадай по признакам</h1>
-        <span class="counter" id="counter"></span>
-      </header>
+      <section class="screen">
+        <header>
+          <h1>Угадай по признакам</h1>
+        </header>
 
-      <p class="instruction" id="instruction">
-        Прочитай три слова. Назови героя и нажми на коробку.
-      </p>
+        <p class="instruction" id="instruction">
+          Прочитай три слова. Назови героя и нажми на коробку.
+        </p>
 
-      <div
-        class="progress"
-        id="progress"
-        role="img"
-        aria-label="Прогресс игры">
-      </div>
+        <div class="board" id="board"></div>
 
-      <div class="board" id="board"></div>
+        <div class="status">
+          <span class="counter" id="counter"></span>
+          <div
+            class="progress"
+            id="progress"
+            role="img"
+            aria-label="Прогресс игры"
+          ></div>
+        </div>
 
-      <footer>
-        <button class="nav back" id="back">Назад</button>
-        <button class="nav" id="next" disabled>Дальше →</button>
-      </footer>
-    </section>
-  </div>
-</main>
+        <footer>
+          <button class="nav back" id="back" type="button">
+            Назад
+          </button>
+          <button class="nav" id="next" type="button" disabled>
+            Дальше →
+          </button>
+        </footer>
+      </section>
+    </div>
+  </main>
 
-<script>
-// Файлы находятся в папке images:
-// monitor.png — монитор
-// pik-1.png ... pik-8.png — животные
+  <script>
+    const rounds = [
+      {
+        name: "Заяц",
+        words: ["Длинноухий", "Пугливый", "Прыткий"],
+        image: "images/pik-1.png"
+      },
+      {
+        name: "Лиса",
+        words: ["Рыжая", "Хитрая", "Пушистая"],
+        image: "images/pik-2.png"
+      },
+      {
+        name: "Волк",
+        words: ["Серый", "Хищный", "Зубастый"],
+        image: "images/pik-3.png"
+      },
+      {
+        name: "Медведь",
+        words: ["Бурый", "Косолапый", "Крупный"],
+        image: "images/pik-4.png"
+      },
+      {
+        name: "Ёж",
+        words: ["Маленький", "Колючий", "Сопящий"],
+        image: "images/pik-5.png"
+      },
+      {
+        name: "Белка",
+        words: ["Рыжая", "Прыгучая", "Запасливая"],
+        image: "images/pik-6.png"
+      },
+      {
+        name: "Тигр",
+        words: ["Полосатый", "Хищный", "Усатый"],
+        image: "images/pik-7.png"
+      },
+      {
+        name: "Лев",
+        words: ["Гривастый", "Могучий", "Грозный"],
+        image: "images/pik-8.png"
+      }
+    ];
 
-const rounds = [
-  {
-    clues: ["Длинноухий", "Пугливый", "Прыткий"],
-    answer: "Заяц",
-    image: "images/pik-1.png"
-  },
-  {
-    clues: ["Рыжая", "Хитрая", "Пушистая"],
-    answer: "Лиса",
-    image: "images/pik-2.png"
-  },
-  {
-    clues: ["Серый", "Хищный", "Зубастый"],
-    answer: "Волк",
-    image: "images/pik-3.png"
-  },
-  {
-    clues: ["Бурый", "Косолапый", "Крупный"],
-    answer: "Медведь",
-    image: "images/pik-4.png"
-  },
-  {
-    clues: ["Маленький", "Колючий", "Сопящий"],
-    answer: "Ёж",
-    image: "images/pik-5.png"
-  },
-  {
-    clues: ["Рыжая", "Прыгучая", "Запасливая"],
-    answer: "Белка",
-    image: "images/pik-6.png"
-  },
-  {
-    clues: ["Полосатый", "Хищный", "Усатый"],
-    answer: "Тигр",
-    image: "images/pik-7.png"
-  },
-  {
-    clues: ["Гривастый", "Могучий", "Грозный"],
-    answer: "Лев",
-    image: "images/pik-8.png"
-  }
-];
+    const $ = id => document.getElementById(id);
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const $ = id => document.getElementById(id);
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    let index = 0;
+    let opened = false;
+    let finished = false;
+    let busy = false;
 
-let index = 0;
-let opened = false;
-let finished = false;
-let busy = false;
+    const completed = new Set();
+    const imageCache = new Map();
 
-const completed = new Set();
-const imageCache = new Map();
+    const pawSvg = `
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <ellipse cx="9" cy="14" rx="4.5" ry="6"
+                 transform="rotate(-25 9 14)"/>
+        <ellipse cx="17" cy="8" rx="4.5" ry="6"/>
+        <ellipse cx="26" cy="9" rx="4.5" ry="6"/>
+        <ellipse cx="33" cy="16" rx="4.5" ry="6"
+                 transform="rotate(25 33 16)"/>
+        <path d="M10 29c0-6 6-13 11-13s11 7 11 13
+                 c0 5-4 7-8 5-2-1-4-1-6 0-4 2-8 0-8-5z"/>
+      </svg>
+    `;
 
-// Масштабирование монитора и всех элементов одновременно
-
-function resizeGame() {
-  const width = $("gameShell").clientWidth;
-  const scale = width / 1680;
-
-  $("game").style.transform = `scale(${scale})`;
-  $("gameShell").style.height = `${945 * scale}px`;
-}
-
-new ResizeObserver(resizeGame).observe($("gameShell"));
-resizeGame();
-
-const pawSvg = `
-  <svg viewBox="0 0 40 40" aria-hidden="true">
-    <ellipse cx="9" cy="14" rx="4.5" ry="6"
-      transform="rotate(-25 9 14)"/>
-    <ellipse cx="17" cy="9" rx="4" ry="6"/>
-    <ellipse cx="26" cy="10" rx="4" ry="6"
-      transform="rotate(15 26 10)"/>
-    <ellipse cx="33" cy="17" rx="4" ry="5.5"
-      transform="rotate(30 33 17)"/>
-    <path d="M11 29c0-6 5-12 10-12s11 7 11 13c0 7-7 5-11 4-4 1-10 3-10-5z"/>
-  </svg>
-`;
-
-function updateProgress() {
-  $("progress").replaceChildren();
-
-  rounds.forEach((round, number) => {
-    const paw = document.createElement("span");
-    paw.className = "paw";
-
-    if (completed.has(number)) {
-      paw.classList.add("done");
-    } else if (number === index && !finished) {
-      paw.classList.add("current");
+    function resizeGame() {
+      const scale = $("gameShell").clientWidth / 1680;
+      $("game").style.transform = `scale(${scale})`;
+      $("gameShell").style.height = `${945 * scale}px`;
     }
 
-    paw.innerHTML = pawSvg;
-    $("progress").append(paw);
-  });
+    new ResizeObserver(resizeGame).observe($("gameShell"));
+    resizeGame();
 
-  $("progress").setAttribute(
-    "aria-label",
-    `Открыто ${completed.size} из ${rounds.length} животных`
-  );
-}
+    function updateProgress() {
+      $("progress").innerHTML = "";
 
-function loadImage(src) {
-  if (imageCache.has(src)) return imageCache.get(src);
+      rounds.forEach((round, number) => {
+        const paw = document.createElement("span");
+        paw.className = "paw";
 
-  const promise = new Promise(resolve => {
-    const img = new Image();
-    let settled = false;
+        if (completed.has(number)) {
+          paw.classList.add("done");
+        } else if (number === index && !finished) {
+          paw.classList.add("current");
+        }
 
-    const done = result => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(result);
-    };
+        paw.innerHTML = pawSvg;
+        $("progress").appendChild(paw);
+      });
 
-    const timer = setTimeout(() => done(null), 10000);
+      $("progress").setAttribute(
+        "aria-label",
+        `Открыто героев: ${completed.size} из ${rounds.length}`
+      );
+    }
 
-    img.onload = () => done(img);
-    img.onerror = () => done(null);
-    img.src = src;
-  });
+    function loadImage(src) {
+      if (imageCache.has(src)) {
+        return imageCache.get(src);
+      }
 
-  imageCache.set(src, promise);
-  return promise;
-}
+      const promise = new Promise(resolve => {
+        const img = new Image();
+        let settled = false;
 
-rounds.forEach(round => loadImage(round.image));
+        const finish = result => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          img.onload = null;
+          img.onerror = null;
+          resolve(result);
+        };
 
-function render() {
-  opened = false;
-  finished = false;
-  busy = false;
+        const timer = setTimeout(() => finish(null), 10000);
 
-  $("counter").textContent = `${index + 1} / ${rounds.length}`;
+        img.onload = () => finish(img);
+        img.onerror = () => finish(null);
+        img.src = src;
+      });
 
-  $("board").innerHTML = `
-    <div class="clues" id="clues"></div>
+      imageCache.set(src, promise);
+      return promise;
+    }
 
-    <button
-      class="answer"
-      id="answer"
-      aria-label="Открыть коробку">
+    function render() {
+      opened = false;
+      finished = false;
+      busy = false;
 
-      <span class="box-stage" aria-hidden="true">
-        <span class="box-scene">
-          <span class="box-hero"></span>
-          <span class="box-lid"></span>
-          <span class="box-body"></span>
-        </span>
-      </span>
+      $("counter").textContent = `${index + 1} / ${rounds.length}`;
+      $("board").innerHTML = `
+        <div class="clues" id="clues"></div>
 
-      <span class="answer-label">Кто в коробке?</span>
-      <span class="hint">Нажми на коробку</span>
-      <span class="sparkles" aria-hidden="true"></span>
-    </button>
-  `;
+        <button
+          class="answer"
+          id="answer"
+          type="button"
+          aria-label="Открыть коробку и узнать героя"
+        >
+          <div class="box-stage">
+            <div class="box-scene" id="boxScene">
+              <div class="box-hero" id="hero"></div>
+              <div class="box-lid"></div>
+              <div class="box-body"></div>
+            </div>
+          </div>
 
-  rounds[index].clues.forEach(word => {
-    const element = document.createElement("div");
-    element.className = "clue";
-    element.textContent = word;
-    $("clues").append(element);
-  });
+          <div class="answer-label" id="answerLabel">
+            Кто в коробке?
+          </div>
 
-  $("next").disabled = true;
-  $("next").textContent =
-    index === rounds.length - 1 ? "Завершить →" : "Дальше →";
+          <div class="hint" id="hint" aria-live="polite">
+            Нажми, чтобы узнать
+          </div>
 
-  $("back").disabled = index === 0;
-  updateProgress();
-}
+          <div class="sparkles" id="sparkles"></div>
+        </button>
+      `;
 
-function showSparkles(button) {
-  const layer = button.querySelector(".sparkles");
-  const colors = ["#f2ba45", "#a49ae9", "#79c4a3", "#ef9cb3"];
+      rounds[index].words.forEach(word => {
+        const plaque = document.createElement("div");
+        plaque.className = "clue";
+        plaque.textContent = word;
+        $("clues").appendChild(plaque);
+      });
 
-  const positions = [
-    [22, 25], [76, 22], [16, 43], [84, 42],
-    [30, 14], [66, 13], [24, 57], [77, 57]
-  ];
+      $("next").disabled = true;
+      $("next").textContent =
+        index === rounds.length - 1 ? "Завершить ★" : "Дальше →";
 
-  positions.forEach(([x, y], number) => {
-    const spark = document.createElement("span");
-    spark.className = "spark";
-    spark.textContent = "✦";
-    spark.style.left = `${x}%`;
-    spark.style.top = `${y}%`;
-    spark.style.setProperty("--color", colors[number % colors.length]);
-    spark.style.setProperty("--size", `${18 + number % 3 * 5}px`);
-    spark.style.setProperty("--delay", `${number * .045}s`);
-    spark.style.setProperty("--dx", `${x < 50 ? -18 : 18}px`);
-    spark.style.setProperty("--dy", "-22px");
-    layer.append(spark);
-  });
+      $("back").disabled = index === 0;
+      updateProgress();
+    }
 
-  setTimeout(() => layer.replaceChildren(), 1600);
-}
+    function showSparkles() {
+      const container = $("sparkles");
+      const positions = [
+        [22, 25], [76, 22], [16, 43], [84, 42],
+        [30, 14], [66, 13], [24, 57], [77, 57]
+      ];
+      const colors = ["#efbb51", "#aaa0ec", "#79bca0", "#e6a0bc"];
 
-async function openBox() {
-  if (opened || busy || finished) return;
+      positions.forEach(([left, top], number) => {
+        const star = document.createElement("span");
+        star.className = "spark";
+        star.textContent = "✦";
+        star.style.left = `${left}%`;
+        star.style.top = `${top}%`;
+        star.style.setProperty("--color", colors[number % colors.length]);
+        star.style.setProperty("--size", `${18 + number % 3 * 5}px`);
+        star.style.setProperty("--delay", `${number * 0.045}s`);
+        star.style.setProperty("--dx", `${number % 2 ? 18 : -18}px`);
+        star.style.setProperty("--dy", "-22px");
+        container.appendChild(star);
+      });
 
-  busy = true;
-  $("back").disabled = true;
+      setTimeout(() => container.replaceChildren(), 1600);
+    }
 
-  const round = rounds[index];
-  const button = $("answer");
-  const hint = button.querySelector(".hint");
+    async function openBox() {
+      if (opened || busy || finished) return;
 
-  button.classList.add("loading");
-  button.setAttribute("aria-label", "Загрузка картинки");
+      busy = true;
+      $("back").disabled = true;
+      $("answer").setAttribute("aria-busy", "true");
 
-  const image = await loadImage(round.image);
-  button.classList.remove("loading");
+      const round = rounds[index];
+      $("hint").textContent = "Сейчас узнаем…";
 
-  if (!image) {
-    hint.textContent =
-      "Картинка не загрузилась. Нажми, чтобы повторить.";
+      const loaded = await loadImage(round.image);
 
-    button.setAttribute("aria-label", "Повторить загрузку картинки");
+      if (!loaded) {
+        $("hint").textContent = "Картинка не загрузилась. Нажми ещё раз.";
+        imageCache.delete(round.image);
+        $("answer").removeAttribute("aria-busy");
+        busy = false;
+        $("back").disabled = index === 0;
+        return;
+      }
 
-    imageCache.delete(round.image);
-    busy = false;
-    $("back").disabled = index === 0;
-    return;
-  }
+      const picture = loaded.cloneNode();
+      picture.alt = round.name;
+      picture.draggable = false;
+      $("hero").replaceChildren(picture);
 
-  const heroImage = image.cloneNode();
-  heroImage.alt = round.answer;
-  heroImage.draggable = false;
+      $("boxScene").classList.add("shaking");
+      await wait(650);
+      $("boxScene").classList.remove("shaking");
 
-  button.querySelector(".box-hero").replaceChildren(heroImage);
+      $("answer").classList.add("revealed");
+      $("answerLabel").textContent = round.name;
+      $("hint").textContent = "Вот кто прятался в коробке!";
+      $("answer").setAttribute("aria-label", `В коробке — ${round.name}`);
+      showSparkles();
 
-  hint.textContent = "Кто же прячется внутри?";
-  button.classList.add("shaking");
-  button.setAttribute("aria-label", "Коробка открывается");
+      await wait(750);
 
-  await wait(650);
+      completed.add(index);
+      opened = true;
+      busy = false;
+      $("answer").removeAttribute("aria-busy");
+      updateProgress();
+      $("next").disabled = false;
+      $("back").disabled = index === 0;
+    }
 
-  button.classList.remove("shaking");
-  button.classList.add("revealed");
+    $("board").addEventListener("click", event => {
+      if (event.target.closest("#answer")) {
+        openBox();
+      }
+    });
 
-  button.querySelector(".answer-label").textContent = round.answer;
-  hint.textContent = "Вот кто прятался в коробке!";
-  button.setAttribute("aria-label", `Ответ: ${round.answer}`);
+    $("next").addEventListener("click", () => {
+      if (busy) return;
 
-  showSparkles(button);
+      if (finished) {
+        index = 0;
+        completed.clear();
+        $("instruction").textContent =
+          "Прочитай три слова. Назови героя и нажми на коробку.";
+        render();
+        return;
+      }
 
-  await wait(750);
+      if (!opened) return;
 
-  completed.add(index);
-  opened = true;
-  busy = false;
-  updateProgress();
+      if (index < rounds.length - 1) {
+        index++;
+        render();
+        return;
+      }
 
-  $("next").disabled = false;
-  $("back").disabled = index === 0;
-}
+      finished = true;
+      updateProgress();
 
-$("board").addEventListener("click", event => {
-  if (event.target.closest("#answer")) openBox();
-});
+      $("counter").textContent = `${rounds.length} / ${rounds.length}`;
+      $("instruction").textContent = "Все герои выбрались из коробки!";
 
-$("next").addEventListener("click", () => {
-  if (busy) return;
+      $("board").innerHTML = `
+        <div class="end">
+          <div class="end-symbol">🎉</div>
+          <h2>Молодец!</h2>
+          <p>Ты познакомился со всеми героями!</p>
+        </div>
+      `;
 
-  if (finished) {
-    index = 0;
-    completed.clear();
+      $("back").disabled = true;
+      $("next").disabled = false;
+      $("next").textContent = "Ещё раз ↻";
+    });
 
-    $("instruction").textContent =
-      "Прочитай три слова. Назови героя и нажми на коробку.";
+    $("back").addEventListener("click", () => {
+      if (busy || finished || index === 0) return;
+      index--;
+      render();
+    });
 
     render();
-    return;
-  }
-
-  if (!opened) return;
-
-  if (index < rounds.length - 1) {
-    index++;
-    render();
-    return;
-  }
-
-  finished = true;
-  updateProgress();
-
-  $("counter").textContent = "Готово!";
-  $("instruction").textContent = "Все загадки открыты!";
-
-  $("board").innerHTML = `
-    <div class="end">
-      <div class="symbol">🎉</div>
-      <h2>Молодец!</h2>
-      <p>Ты нашёл всех животных!</p>
-    </div>
-  `;
-
-  $("back").disabled = true;
-  $("next").textContent = "Играть ещё";
-});
-
-$("back").addEventListener("click", () => {
-  if (index > 0 && !finished && !busy) {
-    index--;
-    render();
-  }
-});
-
-render();
-</script>
+    rounds.forEach(round => loadImage(round.image));
+  </script>
 </body>
 </html>
