@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Угадай по признакам</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: #eaf4f8;
+  font-family: Arial, sans-serif;
+  color: #23364e;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:focus-visible {
+  outline: 4px solid #ffbc45;
+  outline-offset: 5px;
+}
+
+.computer {
+  width: min(100%, 1100px);
+}
+
+.monitor {
+  background: #23364e;
+  border-radius: 30px;
+  padding: 18px 18px 12px;
+  box-shadow: 0 18px 45px #23364e22;
+}
+
+.screen {
+  background: #fafcff;
+  border-radius: 18px;
+  padding: 30px;
+  min-height: 490px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+h1 {
+  font-size: clamp(23px, 3.6vw, 38px);
+  margin: 0;
+}
+
+.counter {
+  background: #eaf0ff;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.instruction {
+  font-size: clamp(16px, 2vw, 21px);
+  color: #65758b;
+  margin: 14px 0 28px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 38px;
+  align-items: center;
+}
+
+.clues {
+  display: grid;
+  gap: 16px;
+}
+
+.clue {
+  background: #e8e8ff;
+  border: 2px solid #d4d2ff;
+  border-radius: 19px;
+  text-align: center;
+  font-size: clamp(22px, 3.7vw, 38px);
+  font-weight: bold;
+  padding: 20px 10px;
+}
+
+.clue:nth-child(2) {
+  background: #e4f5ee;
+  border-color: #c5e9d9;
+}
+
+.clue:nth-child(3) {
+  background: #fff0d6;
+  border-color: #f7dfb4;
+}
+
+.answer {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 300px;
+  border: 0;
+  border-radius: 24px;
+  background: #edf3ff;
+  color: #23364e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.answer.revealed {
+  background: #f3faf6;
+  cursor: default;
+}
+
+.answer.shaking {
+  cursor: wait;
+}
+
+.answer-label {
+  min-height: 42px;
+  font-size: clamp(25px, 3vw, 35px);
+  font-weight: bold;
+}
+
+.hint {
+  font-size: 16px;
+  color: #687b97;
+}
+
+/* Коробка */
+
+.box-scene {
+  position: relative;
+  width: 220px;
+  height: 195px;
+  margin-top: 15px;
+}
+
+.box-body {
+  position: absolute;
+  z-index: 3;
+  left: 20px;
+  bottom: 0;
+  width: 180px;
+  height: 115px;
+  background: #e9af68;
+  border: 4px solid #bd7b3f;
+  border-radius: 5px 5px 15px 15px;
+  box-shadow: inset -18px 0 #d99a55;
+}
+
+.box-body::after {
+  content: "?";
+  position: absolute;
+  inset: 12px;
+  text-align: center;
+  font-size: 65px;
+  font-weight: bold;
+  color: #fff3de;
+}
+
+.box-lid {
+  position: absolute;
+  z-index: 4;
+  left: 10px;
+  bottom: 106px;
+  width: 200px;
+  height: 32px;
+  background: #f7c785;
+  border: 4px solid #bd7b3f;
+  border-radius: 7px;
+  transform-origin: 10% 80%;
+  transition: transform .5s, opacity .5s;
+}
+
+/* Герой внутри коробки */
+
+.box-hero {
+  position: absolute;
+  left: 0;
+  bottom: 35px;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;
+  z-index: 2;
+  opacity: 0;
+  transform: scale(.5);
+  transition: transform .65s ease-out, opacity .3s;
+}
+
+.box-hero img {
+  height: 125px;
+  max-width: 180px;
+  object-fit: contain;
+}
+
+.answer.revealed .box-hero {
+  opacity: 1;
+  transform: translateY(-95px) scale(1);
+}
+
+.answer.revealed .box-lid {
+  transform: translate(-25px, -65px) rotate(-35deg);
+  opacity: 0;
+}
+
+.answer.revealed .box-body::after {
+  content: "★";
+  font-size: 55px;
+}
+
+.answer.revealed .box-scene {
+  margin-top: 85px;
+}
+
+/* Тряска коробки */
+
+.shaking .box-scene {
+  animation: shake .65s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  15%, 45%, 75% {
+    transform: translateX(-7px) rotate(-5deg);
+  }
+  30%, 60%, 90% {
+    transform: translateX(7px) rotate(5deg);
+  }
+}
+
+/* Кнопки */
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-top: 28px;
+}
+
+.nav {
+  border: 0;
+  border-radius: 14px;
+  background: #5b64dc;
+  color: white;
+  padding: 14px 25px;
+  font-weight: bold;
+  font-size: 19px;
+}
+
+.nav:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.back {
+  background: #e9edf4;
+  color: #354761;
+}
+
+/* Подставка компьютера */
+
+.led {
+  height: 8px;
+  width: 8px;
+  background: #a4e4bd;
+  border-radius: 50%;
+  margin: 10px auto 0;
+}
+
+.stand {
+  height: 35px;
+  width: 110px;
+  background: #23364e;
+  margin: auto;
+}
+
+.base {
+  height: 15px;
+  width: 240px;
+  background: #23364e;
+  border-radius: 15px 15px 4px 4px;
+  margin: auto;
+}
+
+/* Финал */
+
+.symbol {
+  font-size: 100px;
+  line-height: 1.2;
+}
+
+.end {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 28px;
+}
+
+.end h2 {
+  font-size: 38px;
+}
+
+.end p {
+  font-size: 22px;
+}
+
+/* Планшеты и небольшие экраны */
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  .monitor {
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .screen {
+    padding: 18px;
+    min-height: 0;
+  }
+
+  header {
+    align-items: flex-start;
+  }
+
+  .counter {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .instruction {
+    line-height: 1.4;
+  }
+
+  .board {
+    gap: 15px;
+  }
+
+  .clue {
+    padding: 17px 5px;
+    font-size: 21px;
+  }
+
+  .answer {
+    min-height: 290px;
+    padding: 8px;
+  }
+
+  .box-scene {
+    transform: scale(.8);
+    width: 220px;
+    margin-left: -20px;
+    margin-right: -20px;
+  }
+
+  .answer.revealed .box-scene {
+    margin-top: 65px;
+  }
+
+  .answer-label {
+    font-size: 22px;
+  }
+
+  .hint {
+    font-size: 13px;
+  }
+
+  .symbol {
+    font-size: 70px;
+  }
+
+  .nav {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  .stand {
+    height: 25px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shaking .box-scene {
+    animation: none;
+  }
+
+  .box-lid,
+  .box-hero {
+    transition: none;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="computer">
+  <div class="monitor">
+    <section class="screen">
+      <header>
+        <h1>Угадай по признакам</h1>
+        <span class="counter" id="counter"></span>
+      </header>
+
+      <p class="instruction" id="instruction">
+        Прочитай три слова. Назови животное и открой ответ.
+      </p>
+
+      <div class="board" id="board">
+        <div class="clues" id="clues"></div>
+
+        <button
+          class="answer"
+          id="answer"
+          aria-label="Открыть ответ">
+        </button>
+      </div>
+
+      <footer>
+        <button class="nav back" id="back">Назад</button>
+        <button class="nav" id="next" disabled>Дальше →</button>
+      </footer>
+    </section>
+
+    <div class="led"></div>
+  </div>
+
+  <div class="stand"></div>
+  <div class="base"></div>
+</main>
+
+<script>
+// =====================================================
+// РАУНДЫ ИГРЫ — МЕНЯЙТЕ СЛОВА И ГЕРОЕВ ЗДЕСЬ
+//
+// clues  — три прилагательных
+// answer — название героя
+// emoji  — временная картинка
+// image  — путь к вашей иллюстрации
+//
+// Пример:
+// image: "images/zayats.png"
+//
+// Если image пустое, отображается эмодзи.
+// =====================================================
+
+const rounds = [
+  {
+    clues: ["Длинноухий", "Пугливый", "Прыткий"],
+    answer: "Заяц",
+    emoji: "🐰",
+    image: ""
+  },
+  {
+    clues: ["Рыжая", "Хитрая", "Пушистая"],
+    answer: "Лиса",
+    emoji: "🦊",
+    image: ""
+  },
+  {
+    clues: ["Серый", "Хищный", "Зубастый"],
+    answer: "Волк",
+    emoji: "🐺",
+    image: ""
+  },
+  {
+    clues: ["Бурый", "Косолапый", "Крупный"],
+    answer: "Медведь",
+    emoji: "🐻",
+    image: ""
+  },
+  {
+    clues: ["Маленький", "Колючий", "Сопящий"],
+    answer: "Ёж",
+    emoji: "🦔",
+    image: ""
+  },
+  {
+    clues: ["Рыжая", "Прыгучая", "Запасливая"],
+    answer: "Белка",
+    emoji: "🐿️",
+    image: ""
+  },
+  {
+    clues: ["Полосатый", "Хищный", "Усатый"],
+    answer: "Тигр",
+    emoji: "🐯",
+    image: ""
+  },
+  {
+    clues: ["Гривастый", "Могучий", "Грозный"],
+    answer: "Лев",
+    emoji: "🦁",
+    image: ""
+  }
+];
+
+let index = 0;
+let opened = false;
+let finished = false;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+const boxMarkup = `
+  <div class="box-scene">
+    <span class="box-hero"></span>
+    <span class="box-lid"></span>
+    <span class="box-body"></span>
+  </div>
+  <span class="answer-label">Кто в коробке?</span>
+  <span class="hint">Нажми на коробку</span>
+`;
+
+// Показ текущего раунда
+
+function render() {
+  finished = false;
+  opened = false;
+  busy = false;
+
+  $("counter").textContent = `${index + 1} / ${rounds.length}`;
+
+  const clueElements = rounds[index].clues.map(word => {
+    const element = document.createElement("div");
+    element.className = "clue";
+    element.textContent = word;
+    return element;
+  });
+
+  $("clues").replaceChildren(...clueElements);
+
+  $("answer").className = "answer";
+  $("answer").disabled = false;
+  $("answer").setAttribute("aria-label", "Открыть ответ");
+  $("answer").innerHTML = boxMarkup;
+
+  $("next").disabled = true;
+  $("next").textContent =
+    index === rounds.length - 1 ? "Завершить →" : "Дальше →";
+
+  $("back").disabled = index === 0;
+}
+
+// Нажатие на коробку
+
+$("answer").addEventListener("click", () => {
+  if (opened || busy) return;
+
+  busy = true;
+
+  const round = rounds[index];
+
+  $("back").disabled = true;
+  $("answer").classList.add("shaking");
+  $("answer").setAttribute("aria-label", "Коробка открывается");
+
+  // Сначала коробка трясётся
+
+  setTimeout(() => {
+    const hero = $("answer").querySelector(".box-hero");
+
+    if (round.image) {
+      const img = document.createElement("img");
+
+      img.src = round.image;
+      img.alt = round.answer;
+
+      img.onerror = () => {
+        hero.textContent = round.emoji;
+      };
+
+      hero.append(img);
+    } else {
+      hero.textContent = round.emoji;
+    }
+
+    // Затем открывается крышка и появляется герой
+
+    $("answer").classList.remove("shaking");
+    $("answer").classList.add("revealed");
+
+    $("answer").querySelector(".answer-label").textContent =
+      round.answer;
+
+    $("answer").querySelector(".hint").textContent =
+      "Вот кто прятался в коробке!";
+
+    $("answer").setAttribute(
+      "aria-label",
+      `Ответ: ${round.answer}`
+    );
+
+    setTimeout(() => {
+      opened = true;
+      busy = false;
+
+      $("next").disabled = false;
+      $("back").disabled = index === 0;
+    }, 650);
+  }, 650);
+});
+
+// Следующий раунд и финал
+
+$("next").addEventListener("click", () => {
+  if (finished) {
+    location.reload();
+    return;
+  }
+
+  if (!opened) return;
+
+  if (index < rounds.length - 1) {
+    index++;
+    render();
+    return;
+  }
+
+  finished = true;
+
+  $("counter").textContent = "Готово!";
+  $("instruction").textContent = "Все загадки открыты!";
+
+  $("board").innerHTML = `
+    <div class="end">
+      <div class="symbol">🎉</div>
+      <h2>Молодец!</h2>
+      <p>Ты разгадал все загадки!</p>
+    </div>
+  `;
+
+  $("back").disabled = true;
+  $("next").textContent = "Играть ещё";
+});
+
+// Предыдущий раунд
+
+$("back").addEventListener("click", () => {
+  if (index > 0 && !finished && !busy) {
+    index--;
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
